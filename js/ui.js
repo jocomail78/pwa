@@ -1,3 +1,4 @@
+
 $(document).ready(function(){
     $(".btn").click(function(){
         start = $("#startbpm").val();
