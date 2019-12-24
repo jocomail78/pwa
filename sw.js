@@ -10,3 +10,8 @@ self.addEventListener('activate',(evt) => {
     //Also some cache management
 });
 
+//fetch event
+self.addEventListener('fetch', evt => {
+    console.log('Fetch event ', evt);
+});
+
