@@ -2,11 +2,11 @@ body{
     color:#fff; background-color:#000;
 }
 input.form-control{
-    background-color:black;color:white; border:1px solid white; height:60px;
+    background-color:black; color:white; border:1px solid white; height:60px;
 }
 .btn{
     width:100%; height:60px;
 }
 .transfer{
-    font-size:85px; color: deepskyblue;
+    font-size:68px; color: deepskyblue;
 }
