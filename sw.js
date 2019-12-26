@@ -1,19 +1,24 @@
-const staticCacheName = 'site-static';
+const staticCacheName = 'site-static-v2';
 const assets = [
     '/',
     '/index.html',
+
     '/pwa/',
     '/pwa/index.html',
+
+    '/favicon.ico',
+    '/pwa/favicon.ico',
+    '/pwa/manifest.json',
+
+    '/pwa/js/ui.js',
+    '/pwa/js/app.js',
+
+    '/pwa/css/styles.css',
+    '/pwa/img/icons/144.png',
+
     'https://code.jquery.com/jquery-3.3.1.slim.min.js',
     'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js',
-    '/pwa/js/app.js',
-    '/pwa/js/ui.js',
     'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css',
-    '/pwa/css/styles.css',
-    '/pwa/favicon.ico',
-    '/favicon.ico',
-    '/pwa/manifest.json',
-    '/pwa/img/icons/144.png',
 ];
 
 //install event
@@ -45,6 +50,19 @@ self.addEventListener('install',(evt) => {
 self.addEventListener('activate',(evt) => {
     console.log('service worker has been activated');
     //Also some cache management
+    //Deleting the old cache here.
+    evt.waitUntil(
+        //requires one single promise to return
+        caches.keys().then( keys => {
+            //keys will return an array of keys from Application/Cache Storage
+            //We have to cycle through all the keys
+            //and group them as a single promise
+            return Promise.all(keys
+                .filter(key => key !== staticCacheName)
+                .map(key => caches.delete(key))
+            )
+        })
+    )
 });
 
 //fetch event
