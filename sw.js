@@ -1,4 +1,6 @@
-const staticCacheName = 'site-static-v2';
+const staticCacheName = 'site-static-v4'; // app shell assets
+const dynamicCacheName = 'site-dynamic-v1'; // page dynamic caches
+const dynamicCacheSize = 2;
 const assets = [
     '/',
     '/index.html',
@@ -19,7 +21,22 @@ const assets = [
     'https://code.jquery.com/jquery-3.3.1.slim.min.js',
     'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js',
     'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css',
+
+    '/pwa/pages/fallback.html'
 ];
+//cache size limit function
+const limitCacheSize = (name, size) => {
+    caches.open(name).then(cache => {
+        cache.keys().then(keys => {
+            if(keys.length > size){
+                //Delete the first item and call recursively the same function
+                //so it deletes over and over until it will be under the limit
+                cache.delete(keys[0]).then(limitCacheSize(name, size));
+            }
+        })
+    });
+};
+
 
 //install event
 self.addEventListener('install',(evt) => {
@@ -58,7 +75,7 @@ self.addEventListener('activate',(evt) => {
             //We have to cycle through all the keys
             //and group them as a single promise
             return Promise.all(keys
-                .filter(key => key !== staticCacheName)
+                .filter(key => (key !== staticCacheName && key!== dynamicCacheName))
                 .map(key => caches.delete(key))
             )
         })
@@ -67,13 +84,27 @@ self.addEventListener('activate',(evt) => {
 
 //fetch event
 self.addEventListener('fetch', evt => {
-    //console.log('Fetch event ', evt);
     evt.respondWith(
         caches.match(evt.request).then(cacheRes => {
             //if cacheRes is not empty: return cacheRes
             //otherwise return fetch(evt.request);
+            return cacheRes || fetch(evt.request).then(fetchResponse => {
+                //dynamic caching every page, if there are multiple pages.
 
-            return cacheRes || fetch(evt.request);
+                return caches.open(dynamicCacheName).then(cache => {
+                    //saving the request/response in cache
+                    console.log("Saving ",evt.request.url);
+                    cache.put(evt.request.url, fetchResponse.clone());
+                    limitCacheSize(dynamicCacheName, dynamicCacheSize);
+                    return fetchResponse;
+                })
+            });
+        }).catch((error) =>{
+            //if user requested some kind of page
+            if(evt.request.url.indexOf('.html') !== -1){
+                return caches.match('/pwa/pages/fallback.html');
+            }
+            //conditioning for .css or .jpg/.png in the same way
         })
     )
 
